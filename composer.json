@@ -1,0 +1,39 @@
+{
+    "name": "cekurte/doctrinebundle",
+    "description": "A extension of features of the doctrine library",
+    "keywords": ["doctrine","multitenancy","querystring"],
+    "homepage": "https://github.com/jpcercal/cekurtedoctrinebundle",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "João Paulo Cercal",
+            "email": "jpcercal@gmail.com",
+            "homepage": "http://sistemas.cekurte.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "doctrine/orm": "~2.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.5",
+        "fabpot/php-cs-fixer": "*"
+    },
+    "autoload": {
+        "psr-4": {"Cekurte\\DoctrineBundle\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {"Cekurte\\DoctrineBundle\\Tests\\": "tests/"}
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "bash contrib/setup.sh"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
