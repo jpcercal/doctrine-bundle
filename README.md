@@ -5,7 +5,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/cekurte/doctrinebundle.svg?style=flat-square)](https://packagist.org/packages/cekurte/doctrinebundle)
 [![Total Downloads](https://img.shields.io/packagist/dt/cekurte/doctrinebundle.svg?style=flat-square)](https://packagist.org/packages/cekurte/doctrinebundle)
 [![License](https://img.shields.io/packagist/l/cekurte/doctrinebundle.svg?style=flat-square)](https://packagist.org/packages/cekurte/doctrinebundle)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/33034475-e92d-4298-8357-b82f2e092ba0/mini.png)](https://insight.sensiolabs.com/projects/33034475-e92d-4298-8357-b82f2e092ba0)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/6f36066c-20d6-4985-98c9-833f628206ef/mini.png)](https://insight.sensiolabs.com/projects/6f36066c-20d6-4985-98c9-833f628206ef)
 
 - A extension of features of the doctrine library to build applications with Symfony2.
 - See also the [CekurteGeneratorBundle](https://github.com/jpcercal/CekurteGeneratorBundle) to build CRUD's automatically 
