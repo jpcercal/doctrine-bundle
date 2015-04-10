@@ -2,7 +2,7 @@
 
 <phpunit colors="true" bootstrap="vendor/autoload.php">
     <testsuites>
-        <testsuite name="CekurteDoctrine for the Symfony Framework">
+        <testsuite name="CekurteDoctrineBundle">
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
@@ -11,6 +11,7 @@
         <whitelist>
             <directory>.</directory>
             <exclude>
+                <directory>./contrib</directory>
                 <directory>./src</directory>
                 <directory>./vendor</directory>
             </exclude>
