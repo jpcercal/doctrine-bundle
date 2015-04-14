@@ -12,7 +12,6 @@
 namespace Cekurte\DoctrineBundle\Tests\DBAL;
 
 use Cekurte\DoctrineBundle\DBAL\ConnectionWrapper;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * Class ConnectionWrapperTest
@@ -38,9 +37,10 @@ class ConnectionWrapperTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param  array $data
+     * @param  bool  $has
      * @return \PHPUnit_Framework_MockObject_MockObject
      */
-    private function getMockSession(array $data = array())
+    private function getMockSession(array $data = array(), $has = true)
     {
         $session = $this
             ->getMockBuilder('\\Symfony\\Component\\HttpFoundation\\Session\\Session')
@@ -51,7 +51,7 @@ class ConnectionWrapperTest extends \PHPUnit_Framework_TestCase
         $session
             ->expects($this->any())
             ->method('has')
-            ->willReturn(true)
+            ->willReturn($has)
         ;
 
         $session
@@ -61,6 +61,23 @@ class ConnectionWrapperTest extends \PHPUnit_Framework_TestCase
         ;
 
         return $session;
+    }
+
+    /**
+     * @param  string $host
+     * @param  string $database
+     * @param  string $user
+     * @param  string $password
+     * @return array
+     */
+    private function getSessionData($host = 'fakehost', $database = 'fakedatabase', $user = 'fakeuser', $password = 'fakepass')
+    {
+        return array(
+            ConnectionWrapper::PARAM_HOST     => $host,
+            ConnectionWrapper::PARAM_DATABASE => $database,
+            ConnectionWrapper::PARAM_USER     => $user,
+            ConnectionWrapper::PARAM_PASSWORD => $password,
+        );
     }
 
     public function testInheritedOfDoctrineConnection()
@@ -92,16 +109,87 @@ class ConnectionWrapperTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($this->wrapper->isConnected());
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testConnect()
     {
+        $this->wrapper->setSession($this->getMockSession(array(), false));
+
+        $this->wrapper->connect();
+    }
+
+    public function testConnectIsConnected()
+    {
+        $this->wrapper->setSession($this->getMockSession());
+
+        $class = new \ReflectionClass($this->wrapper);
+
+        $reflectionProperty = $class->getProperty('_isConnected');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue($this->wrapper, true);
+
+        $this->assertFalse($this->wrapper->connect());
+    }
+
+    public function testConnectSuccessfully()
+    {
+        $this->wrapper->setSession($this->getMockSession());
+
+        $this->assertTrue($this->wrapper->connect());
     }
 
     public function testClose()
     {
+        $class = new \ReflectionClass($this->wrapper);
+
+        $reflectionProperty = $class->getProperty('_isConnected');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue($this->wrapper, true);
+
+        $this->assertTrue($this->wrapper->isConnected());
+
+        $this->wrapper->close();
+
+        $this->assertFalse($this->wrapper->isConnected());
+    }
+
+    public function testHasNewConnectionParams()
+    {
+        $class  = new \ReflectionClass($this->wrapper);
+
+        $method = $class->getMethod('hasNewConnectionParams');
+
+        $method->setAccessible(true);
+
+        $sessionData = array(
+            $this->getSessionData(),
+            $this->getSessionData('fakehost', 'fake2database'),
+        );
+
+        $this->wrapper->setSession($this->getMockSession($sessionData[0]));
+
+        $this->assertFalse($method->invokeArgs($this->wrapper, array($sessionData[0])));
+
+        $this->assertTrue($method->invokeArgs($this->wrapper, array($sessionData[1])));
+
+        $this->wrapper->setSession($this->getMockSession($sessionData[1]));
+
+        $this->assertFalse($method->invokeArgs($this->wrapper, array($sessionData[1])));
     }
 
     public function testForceSwitch()
     {
+        $this->wrapper->setSession($this->getMockSession($this->getSessionData()));
+
+        $this->assertFalse($this->wrapper->forceSwitch('fakehost', 'fakedatabase', 'fakeuser', 'fakepass'));
+    }
+
+    public function testForceSwitchWithSuccessfully()
+    {
+        $this->wrapper->setSession($this->getMockSession($this->getSessionData()));
+
+        $this->assertTrue($this->wrapper->forceSwitch('fake2host', 'fakedatabase', 'fakeuser', 'fakepass'));
     }
 
     public function testGetParams()
@@ -110,26 +198,40 @@ class ConnectionWrapperTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEmpty($this->wrapper->getParams());
 
-        $sessionFirstData = array(
-            ConnectionWrapper::PARAM_HOST     => 'fakehost',
-            ConnectionWrapper::PARAM_DATABASE => 'fakedatabase',
-            ConnectionWrapper::PARAM_USER     => 'fakeuser',
-            ConnectionWrapper::PARAM_PASSWORD => 'fakepass',
+        $sessionData = array(
+            $this->getSessionData(),
+            $this->getSessionData('fakehost', 'fake2database'),
         );
 
-        $this->wrapper->setSession($this->getMockSession($sessionFirstData));
+        $this->wrapper->setSession($this->getMockSession($sessionData[0]));
 
-        $this->assertEquals($sessionFirstData, $this->wrapper->getParams());
+        $this->assertEquals($sessionData[0], $this->wrapper->getParams());
 
-        $sessionSecondData = array(
-            ConnectionWrapper::PARAM_HOST     => 'fakehost',
-            ConnectionWrapper::PARAM_DATABASE => 'fake2database',
-            ConnectionWrapper::PARAM_USER     => 'fakeuser',
-            ConnectionWrapper::PARAM_PASSWORD => 'fakepass',
-        );
+        $this->wrapper->setSession($this->getMockSession($sessionData[1]));
 
-        $this->wrapper->setSession($this->getMockSession($sessionSecondData));
+        $this->assertEquals($sessionData[1], $this->wrapper->getParams());
+    }
 
-        $this->assertEquals($sessionSecondData, $this->wrapper->getParams());
+    public function testGetParamsKey()
+    {
+        $class  = new \ReflectionClass($this->wrapper);
+
+        $method = $class->getMethod('getParamsKey');
+
+        $method->setAccessible(true);
+
+        $keys = $method->invokeArgs($this->wrapper, array());
+
+        $this->assertEquals(5, count($keys));
+
+        $this->assertTrue(in_array(ConnectionWrapper::PARAM_DRIVER_OPTIONS, $keys));
+
+        $this->assertTrue(in_array(ConnectionWrapper::PARAM_HOST, $keys));
+
+        $this->assertTrue(in_array(ConnectionWrapper::PARAM_DATABASE, $keys));
+
+        $this->assertTrue(in_array(ConnectionWrapper::PARAM_USER, $keys));
+
+        $this->assertTrue(in_array(ConnectionWrapper::PARAM_PASSWORD, $keys));
     }
 }
