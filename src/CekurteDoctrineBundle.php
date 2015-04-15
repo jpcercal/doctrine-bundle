@@ -11,6 +11,8 @@
 
 namespace Cekurte\DoctrineBundle;
 
+use Cekurte\DoctrineBundle\DependencyInjection\Compiler\CompilerDoctrineConnectionPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
@@ -20,4 +22,13 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class CekurteDoctrineBundle extends Bundle
 {
+    /**
+     * @inheritdoc
+     */
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new CompilerDoctrineConnectionPass());
+    }
 }
