@@ -159,7 +159,7 @@ class ConnectionWrapper extends Connection
     {
         if ($this->getSession()->has(self::SESSION_CONNECTION_KEY)) {
             $current = $this->getSession()->get(self::SESSION_CONNECTION_KEY);
-            if ($current[self::PARAM_HOST] === $dbHost and $current[self::PARAM_DATABASE] === $dbName) {
+            if ($current[self::PARAM_HOST] === $dbHost && $current[self::PARAM_DATABASE] === $dbName) {
                 return false;
             }
         }
